@@ -15,12 +15,15 @@ app.use(express.json());
 // This middleware allows us to serve static files
 app.use(express.static("./public")); 
 
-app.use('/form', userform);
+app.use('/api/form', userform);
 
+/*app.get('/hola',(req,res)  => {
+  res.send('Que mas pues');
+});*/
 
 // Start the server
-app.listen(PORT, () => {
-    console.log(`server is running on ${PORT}
+app.listen(8080, () => {
+    console.log(`server is running on 8080
       press cntrl + C to stop`);
   
   });

@@ -19,6 +19,9 @@ router.get("/", (request, response)=>{
     const photos = getPhotos()
     response.json(photos)})
 
+router.get("/bebe", (request, response)=>{
+    response.send('Que mas pues');})
+
 router.get("/:id", (request, response) => {
     const photos = getPhotos(); // Get all photos
     const { id } = request.params; // Extract id from the request
