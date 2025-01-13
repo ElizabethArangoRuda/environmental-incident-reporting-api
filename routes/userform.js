@@ -2,12 +2,25 @@ import express from "express";
 import fs from 'fs';
 import knex from 'knex';
 import knexConfig from '../knexfile.js';
+import multer from 'multer';
+import path from 'path';
 
 const router = express.Router();
 
-const db = knex(knexConfig); 
+const db = knex(knexConfig);
 
-router.get("/anonymous", async (request, response) =>{
+// Configure multer
+const storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        cb(null, 'uploads/temp'); // Carpeta donde se almacenarán los archivos
+    },
+    filename: (req, file, cb) => {
+        cb(null, `${Date.now()}-${file.originalname}`); // Nombre único para el archivo
+    },
+});
+const upload = multer({ storage });
+
+router.get("/anonymous", async (request, response) => {
     try {
         const complaint = await db("reports").select("*");
         response.json(complaint);
@@ -15,8 +28,6 @@ router.get("/anonymous", async (request, response) =>{
         console.error("Error fetching complaints:", error)
     }
 });
-
-
 
 router.post('/anonymous', async (request, response) => {
     try {
@@ -29,12 +40,12 @@ router.post('/anonymous', async (request, response) => {
             contact_phone: request.body.contact_phone,
             contact_email: request.body.contact_email,
             description: request.body.description,
-            category: request.body.category, 
+            category: request.body.category,
             media: media, // Serialized JSON
-            latitude: request.body.latitude,
-            longitude: request.body.longitude,
-            created_at : new Date(),
-            updated_at : new Date(),
+            latitude: parseFloat(request.body.latitude),
+            longitude: parseFloat(request.body.longitude),
+            created_at: new Date(),
+            updated_at: new Date(),
         };
 
         // Insert the complaint into the 'reports' table
@@ -54,6 +65,58 @@ router.post('/anonymous', async (request, response) => {
     }
 });
 
+router.post('/anonymous2', upload.single('media_files'), async (request, response) => {
+    try {
+
+        const complaint = {
+            address: request.body.address,
+            description: request.body.description,
+            category: request.body.category,
+            contact_name: request.body.contact_name,
+            contact_phone: request.body.contact_phone,
+            contact_email: request.body.contact_email,
+            media: JSON.stringify(request.file),
+            latitude: request.body.latitude,
+            longitude: request.body.longitude,
+            created_at: new Date(),
+            updated_at: new Date(),
+        };
+
+        // Insert the complaint into the database
+        const [id] = await db("reports").insert(complaint);
+
+        if (request.file) {
+
+            /*const filePath = request.file.path;  // Ruta completa del archivo subido
+            const fileName = request.file.filename;  // Nombre del archivo subido
+            const fileSize = request.file.size;*/  // Tamaño del archivo
+
+            // Create folder with report id
+            const reportFolder = path.join('uploads/reports', id.toString());
+            if (!fs.existsSync(reportFolder)) {
+                fs.mkdirSync(reportFolder, { recursive: true });
+            }
+
+            // Move the file uploaded to the temp folder to the report id folder
+            const oldPath = request.file.path;
+            const newPath = path.join(reportFolder, request.file.filename);
+            fs.renameSync(oldPath, newPath);
+        }
+
+        // Responder al cliente
+        response.status(201).send({
+            message: 'Complaint submitted successfully.',
+            reportId: id,
+        });
+    } catch (error) {
+        console.error('Error:', error);
+        response.status(500).send({
+            message: 'An error occurred while submitting the complaint.',
+            error: error.message || error,
+        });
+    }
+});
+
 
 export default router;
 
@@ -64,7 +127,7 @@ export default router;
 // 	const photosData = fs.readFileSync('./data/photos.json')
 // 	const parseData = JSON.parse(photosData)
 // 	return parseData
-// } 
+// }
 
 // // Function to save photos data
 // function savePhotos(data) {
