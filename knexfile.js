@@ -1,6 +1,11 @@
 // Import dotenv to process environment variables from `.env` file.
 import "dotenv/config";
 
+console.log(process.env.DB_HOST);  
+console.log(process.env.DB_NAME);
+console.log(process.env.DB_USER);
+console.log(process.env.DB_PASSWORD);
+
 export default {
   client: "mysql2",
   connection: {
