@@ -1,4 +1,5 @@
 To run the server:
+npm install
 npm i knex mysql2 axios express dotenv cors multer
 once all modules are installed, and the database is setup
 run :
