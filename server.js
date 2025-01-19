@@ -19,10 +19,6 @@ app.use(express.static("./public"));
 // complaints route
 app.use('/api/complaints', userform);
 
-/*app.get('/hola',(req,res)  => {
-  res.send('Que mas pues');
-});*/
-
 const PORT = process.env.PORT || 8080;
 
 // Start the server
