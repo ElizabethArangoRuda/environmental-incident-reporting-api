@@ -65,7 +65,7 @@ router.post('/anonymous', async (request, response) => {
     }
 });
 
-router.post('/anonymous', upload.single('media_files'), async (request, response) => {
+router.post('/anonymous2', upload.single('media_files'), async (request, response) => {
     try {
 
         const complaint = {
